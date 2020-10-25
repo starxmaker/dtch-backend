@@ -1,5 +1,5 @@
+
 const express= require("express")
-const Record = require("../../../../../../../../AppServ/www/translateandrun/rcch-backend/models/Record")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
 

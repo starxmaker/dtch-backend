@@ -5,7 +5,6 @@ const bodyParser=require("body-parser")
 const cookieParser = require("cookie-parser")
 const helmet= require("helmet")
 require("dotenv/config")
-
 const app=express()
 
 

@@ -30,10 +30,11 @@ router.post("/login", (req,res) =>{
     try{
         Usuario.getAuthenticated(req.body.username, req.body.password, function(err, user, reason) {
         if (user) {
-                generateToken(res,user._id, user.username)
+                const token=generateToken(res,user._id, user.username)
                
                res.json({
-                mensaje: 'Autenticación correcta'
+                mensaje: 'Autenticación correcta',
+                token: token
                });
             return;
         }else{
