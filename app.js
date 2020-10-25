@@ -12,7 +12,7 @@ const app=express()
 //middlewares
 app.use(helmet())
 app.use(cors({
-    preflightContinue: true,
+    origin: process.env.FRONT_URL,
     credentials: true
   }))
 app.use(cookieParser())
