@@ -5,6 +5,10 @@ const ListaSchema=mongoose.Schema({
         type: Array,
         default: []
     },
+    historial:{
+        type: Array,
+        default: []
+    },
     fecha_year: {
         type: Number,
         default: new Date().getFullYear()

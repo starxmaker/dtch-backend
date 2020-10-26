@@ -64,7 +64,7 @@ router.get("/replacePublicador/:publicadorId", async (req, res) =>{
 router.get("/checkExistance/:numero", async(req,res) =>{
     try{
         const telefonos= await Telefono.countDocuments({numero:req.params.numero})
-        console.log(telefonos)
+       
         res.status(200).json({exists: telefonos!==0})
     }catch(err){
         res.status(403).send({error: "Error de autorización"})
@@ -123,12 +123,12 @@ router.get("/:telefonoId", async (req, res) =>{
 })
 
 router.post("/nextNumber", async (req, res) =>{
-    try{
+   try{
         let allowedEstados=[]
         
         let allowedTipos=[]
-        let allowedGrupos=req.body.filtro.allowedGrupos
-        let allowedFuentes=req.body.filtro.allowedFuentes
+        //let allowedGrupos=req.body.filtro.allowedGrupos
+        //let allowedFuentes=req.body.filtro.allowedFuentes
         let additionalFilters={}
         
         if (req.body.filtro.tipo.fijo) allowedTipos.push(0)
@@ -153,15 +153,16 @@ router.post("/nextNumber", async (req, res) =>{
             ...additionalFilters,
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
-            grupo: {$in: allowedGrupos},
-            fuente: {$in: allowedFuentes}
+            //grupo: {$in: allowedGrupos},
+            //fuente: {$in: allowedFuentes}
         }
         const results=await queryTelefonos(filtros,req.body.quantity)
         
         res.status(200).json(results)
-    }catch(err){
-        res.status(403).json({error: "error de autorización"})
+    }catch (err){
+        res.status(403).send({error: "Error de autorización"})
     }
+    
    
 })
 
@@ -186,27 +187,30 @@ router.post("/", async (req,res) =>{
 
 router.patch("/", async(req,res) =>{
     try{
-        let telefono=await Telefono.findOne({idTelefono: req.body.idTelefono})
-        let notEditables=[7,2,10,11]
-        let newStatusNotEditables=[0,9,4,6,12]
-        let updateQuery={
-            ultima_llamada_year:new Date().getFullYear(),
-            ultima_llamada_month:new Date().getMonth()+1,
-            ultima_llamada_day:new Date().getDate(),
-            ultima_llamada_hour:new Date().getHours(),
-            ultima_llamada_minute:new Date().getMinutes(),
-            ultima_llamada_second:new Date().getSeconds()
+        if (req.body.idTelefono!=0 && req.body.idTelefono!=null){
+            let telefono=await Telefono.findOne({idTelefono: req.body.idTelefono})
+            let notEditables=[7,2,10,11]
+            let newStatusNotEditables=[0,9,4,6,12]
+            let updateQuery={
+                ultima_llamada_year:new Date().getFullYear(),
+                ultima_llamada_month:new Date().getMonth()+1,
+                ultima_llamada_day:new Date().getDate(),
+                ultima_llamada_hour:new Date().getHours(),
+                ultima_llamada_minute:new Date().getMinutes(),
+                ultima_llamada_second:new Date().getSeconds()
+            }
+            
+            if(!(notEditables.includes(telefono.estado) && newStatusNotEditables.includes(req.body.newEstado))){
+                    updateQuery={
+                        ...updateQuery,
+                        estado: req.body.newEstado,
+                        publicador: req.body.newPublicador
+                    }
+                
+            }
+            await Telefono.updateOne({idTelefono: req.body.idTelefono},updateQuery)
         }
         
-        if(!(notEditables.includes(telefono.estado) && newStatusNotEditables.includes(req.body.newEstado))){
-                updateQuery={
-                    ...updateQuery,
-                    estado: req.body.newEstado,
-                    publicador: req.body.newPublicador
-                }
-            
-        }
-        await Telefono.updateOne({idTelefono: req.body.idTelefono},updateQuery)
         const newRecord=new Historial({
             id_numero: req.body.idTelefono,
             estado:req.body.newEstado,
@@ -214,7 +218,6 @@ router.patch("/", async(req,res) =>{
             tiempo: req.body.tiempo
         })
         const insertedRecord=await newRecord.save()
-        console.log(insertedRecord)
         res.status(200).json({"message": "OK"})
     }catch(err){
         res.status(403).json({"error": "error de autentificación"})
@@ -233,11 +236,7 @@ router.delete("/:telefonoId", async (req, res) =>{
 
 const queryTelefonos= async (filtros, quantity)=>{
     const results=await Telefono.aggregate()
-    .lookup({from: "publicadores", localField: "publicador", foreignField: "idPublicador", as: "Publicador"})
-    .unwind({path: "$Publicador", preserveNullAndEmptyArrays: true})
-    .lookup({from: "fuentes", localField: "fuente", foreignField: "idFuente", as: "Fuente"})
-    .unwind({path: "$Fuente", preserveNullAndEmptyArrays: true})
-    .addFields({nombrePublicador: "$Publicador.nombre", nombreFuente: "$Fuente.nombre", dias_desde:{$trunc: {$divide:[{$subtract: [new Date(), {$dateFromString:{ dateString:{$concat: [{$substr:["$ultima_llamada_year",0, -1]},"-",{$substr: ["$ultima_llamada_month",0,-1]},"-",{$substr:["$ultima_llamada_day", 0,-1]}]}}}]}, 1000 * 60 * 60 *24]}}}).match(filtros).sort(
+    .sort(
         {
             "ultima_llamada_year": 1,
             "ultima_llamada_month": 1,
@@ -247,6 +246,11 @@ const queryTelefonos= async (filtros, quantity)=>{
            "ultima_llamada_second": 1
         }
     )
+    .lookup({from: "publicadores", localField: "publicador", foreignField: "idPublicador", as: "Publicador"})
+    .unwind({path: "$Publicador", preserveNullAndEmptyArrays: true})
+    .lookup({from: "fuentes", localField: "fuente", foreignField: "idFuente", as: "Fuente"})
+    .unwind({path: "$Fuente", preserveNullAndEmptyArrays: true})
+    .addFields({nombrePublicador: "$Publicador.nombre", nombreFuente: "$Fuente.nombre", dias_desde:{$trunc: {$divide:[{$subtract: [new Date(), {$dateFromString:{ dateString:{$concat: [{$substr:["$ultima_llamada_year",0, -1]},"-",{$substr: ["$ultima_llamada_month",0,-1]},"-",{$substr:["$ultima_llamada_day", 0,-1]}]}}}]}, 1000 * 60 * 60 *24]}}}).match(filtros)
     .limit(quantity)
     
     return results

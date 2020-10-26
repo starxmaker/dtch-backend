@@ -4,7 +4,7 @@ const AutoIncrement = require('mongoose-sequence')(mongoose);
 const HistorialSchema=mongoose.Schema({
     id_numero: {
         type: Number,
-        required: true
+        default: null
     },
     tiempo: {
         type: Number,
@@ -51,6 +51,6 @@ const HistorialSchema=mongoose.Schema({
     
 })
 
-HistorialSchema.plugin(AutoIncrement, {inc_field: 'idHistorial', start_seq: 1000});
+HistorialSchema.plugin(AutoIncrement, {inc_field: 'idHistorial', start_seq: 10000});
 
 module.exports= mongoose.model("historials", HistorialSchema)

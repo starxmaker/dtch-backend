@@ -2,7 +2,7 @@ const jwt=require("jsonwebtoken")
 require("dotenv/config")
 
 const jwt_auth = async (req, res, next) => {
-  const token = req.cookies.token || '';
+  const token = req.cookies['token'] || '';
   const token2= req.headers['access-token'] || ''
   try {
     if (!token) {

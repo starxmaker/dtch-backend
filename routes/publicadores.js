@@ -16,14 +16,26 @@ router.get("/getAll", async (req, res) =>{
         res.status(403).send({error: "Error de autorización"})
     }
 })
-router.get("/:publicadorId", async (req, res) =>{
+
+router.get("/nombre/:nombre", async (req, res) =>{
     try{
-        const receivedPublicador= await Publicador.findOne({ 'idPublicador': req.params.publicadorId })
+        const receivedPublicador= await Publicador.findOne({ 'nombre': req.params.nombre })
         res.status(200).json(receivedPublicador)
     }catch(err){
         res.status(403).send()
     }
 })
+
+router.get("/:publicadorId", async (req, res) =>{
+    try{
+        const receivedPublicador= await Publicador.findOne({ 'idPublicador': parseInt(req.params.publicadorId) })
+        res.status(200).json(receivedPublicador)
+    }catch(err){
+        res.status(403).send({error: "Error de autorización"})
+    }
+})
+
+
 
 router.post("/", async (req,res) =>{
     const publicador= new Publicador({

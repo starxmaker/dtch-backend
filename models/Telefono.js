@@ -90,6 +90,6 @@ const TelefonoSchema=mongoose.Schema({
     
 })
 
-TelefonoSchema.plugin(AutoIncrement, {inc_field: 'idTelefono', start_seq: 1000});
+TelefonoSchema.plugin(AutoIncrement, {inc_field: 'idTelefono', start_seq: 10000});
 
 module.exports= mongoose.model("telefonos", TelefonoSchema)

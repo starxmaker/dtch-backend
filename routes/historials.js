@@ -72,23 +72,19 @@ router.delete("/:historialId", async (req, res) =>{
 
 const queryHistorials= async (quantity, filtros={})=>{
     const results=await Historial.aggregate()
+    .match(filtros)
+    .sort(
+        {
+            "idHistorial": -1
+        }
+    )
+    .limit(quantity)
     .lookup({from: "telefonos", localField: "id_numero", foreignField: "idTelefono", as: "Telefono"})
     .unwind({path: "$Telefono", preserveNullAndEmptyArrays: true})
     .lookup({from: "publicadores", localField: "publicador", foreignField: "idPublicador", as: "Publicador"})
     .unwind({path: "$Publicador", preserveNullAndEmptyArrays: true})
     .addFields({nombrePublicador: "$Publicador.nombre", numeroTelefono: "$Telefono.numero"})
-    .match(filtros)
-    .sort(
-        {
-            "hora_year": -1,
-            "hora_month": -1,
-            "hora_day": -1,
-            "hora_hour": -1,
-            "hora_minute": -1,
-           "hora_second": -1
-        }
-    )
-    .limit(quantity)
+    
     
     return results
 }

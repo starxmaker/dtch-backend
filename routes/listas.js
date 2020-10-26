@@ -11,7 +11,7 @@ router.get("/", async (req, res) =>{
         
         const results=await Lista.findOne({ fecha_year: new Date().getFullYear(),fecha_month:new Date().getMonth()+1,fecha_day:new Date().getDate()})
         if (results==null){
-            res.json({lista: []})
+            res.json({lista: [], historial: []})
         }else{
             res.json(results)
         }
@@ -22,7 +22,7 @@ router.get("/", async (req, res) =>{
 router.post("/", async (req, res) =>{
     try{
             await Lista.remove({})
-            const lista=new Lista({lista: req.body.lista})
+            const lista=new Lista({lista: req.body.lista, historial: req.body.historial})
             const savedLista=await lista.save()
             res.status(200).json(savedLista)
     }catch(err){
