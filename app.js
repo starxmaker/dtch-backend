@@ -15,6 +15,7 @@ app.use(cors({
   origin: true,
     credentials: true
   }))
+  app.enable('trust proxy');
   app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Origin', req.header('origin') );
     res.header('Access-Control-Allow-Headers', 'Origin, Accept, access-token, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Response-Time, X-PINGOTHER, X-CSRF-Token,Authorization');
