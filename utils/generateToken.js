@@ -11,7 +11,7 @@ const generateToken = (res, id, username) => {
   });
   res.cookie('token', token, {
     expires: new Date(Date.now() + expiration),
-    secure: false,
+    secure: true,
     httpOnly: true,
   });
   return token_header
