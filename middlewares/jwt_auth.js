@@ -5,7 +5,7 @@ const jwt_auth = async (req, res, next) => {
   //const token = req.cookies['token'] || '';
   const token2= req.headers['access-token'] || ''
   try {
-    if (!token) {
+    if (!token2) {
       return res.status(401).json('Por favor inicie sesión')
     }
     //const decrypt = await jwt.verify(token, process.env.JWT_KEY);
