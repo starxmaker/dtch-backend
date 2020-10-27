@@ -43,7 +43,7 @@ router.post("/login", (req,res) =>{
         }
     });
 }catch(err){
-    res.status(403).json({error: "Error de autentificación"})
+    res.status(400).json({error: "Error de autentificación"})
 }
 })
 

@@ -12,17 +12,9 @@ const app=express()
 //middlewares
 app.use(helmet())
 app.use(cors({
-  origin: true,
+  origin: [process.env.FRONT_URL_PRODUCTION, process.env.FRONT_URL_DEVELOPMENT],
     credentials: true
   }))
-  app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', req.header('origin') );
-    res.header('Access-Control-Allow-Headers', 'Origin, Accept, access-token, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Response-Time, X-PINGOTHER, X-CSRF-Token,Authorization');
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT ,DELETE, PATCH');
-        res.header('Access-Control-Allow-Credentials', true);
-        res.header("Access-Control-Max-Age", "3600");
-    next();
-  });
 
 app.use(cookieParser())
 app.use(bodyParser.json())

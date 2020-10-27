@@ -2,17 +2,18 @@ const jwt = require('jsonwebtoken');
 require("dotenv/config")
 
 const generateToken = (res, id, username) => {
-  const expiration = 21600;
+  const expiration = process.env.EXPIRATION;
   const token = jwt.sign({ id}, process.env.JWT_KEY, {
-    expiresIn: '6h',
+    expiresIn: expiration,
   });
   const token_header = jwt.sign({username }, process.env.JWT_KEY_HEADER, {
-    expiresIn: '6h',
+    expiresIn: expiration,
   });
   res.cookie('token', token, {
-    expires: new Date(Date.now() + expiration),
-    secure: true,
+    secure: process.env.HTTPS=="TRUE",
+    //domain: process.env.DOMAIN,
     httpOnly: true,
+    sameSite: "none"
   });
   return token_header
 };
