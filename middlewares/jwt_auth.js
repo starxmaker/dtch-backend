@@ -13,7 +13,6 @@ const jwt_auth = async (req, res, next) => {
      const decrypt=await jwt.verify(token, process.env.JWT_KEY)
      if (csrfToken!=decrypt.csrfToken) throw "tokens no son iguales"
      
-     if (decrypt.ip!=req.ip) throw "IPS no coinciden"
     next();
   }catch (err){
     if (err.name=="TokenExpiredError"){
@@ -36,15 +35,13 @@ const regenerateToken = async (res,oldToken, csrfToken) =>{
     const payload = await jwt.verify(oldToken, process.env.JWT_KEY, {ignoreExpiration: true} );
 
     const username=payload.username
-    const ip=payload.ip
     const user=await Usuario.findOne({username: username})
 
     const refresh=user.refresh
     const decrypt=await jwt.verify(refresh, process.env.REFRESH_KEY);
     if (decrypt.csrfToken!=csrfToken) throw "tokens no coinciden"
-    if (decrypt.ip!=ip) throw "IPS no coinciden"
 
-    const token = jwt.sign({ username,ip, csrfToken}, process.env.JWT_KEY, {
+    const token = jwt.sign({ username, csrfToken}, process.env.JWT_KEY, {
       expiresIn: process.env.TOKEN_EXPIRATION,
     });
 

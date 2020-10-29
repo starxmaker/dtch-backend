@@ -30,13 +30,12 @@ router.post("/init", async (req, res) =>{
 
 router.post("/login", (req,res) =>{
     //sanitize
-    const ip= sanitize(req.ip)
     const username=sanitize(req.body.username)
     const password=sanitize(req.body.password)
     try{
         Usuario.getAuthenticated(username, password, async function(err, user, reason) {
         if (user) {
-                const csrfToken=await generateToken(res, username, ip)
+                const csrfToken=await generateToken(res, username)
                
                res.json({
                 mensaje: 'Autenticación correcta',
