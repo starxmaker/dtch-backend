@@ -24,6 +24,7 @@ const jwt_auth = async (req, res, next) => {
         res.status(501).json({error: "Error de inicio de tokens"})
       }
     }else{
+      console.log(err)
       res.status(500).json({error: "Error de autenticación"})
     }
   }
