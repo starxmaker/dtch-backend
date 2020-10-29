@@ -5,7 +5,7 @@ require("dotenv/config")
 const generateToken = require('../utils/generateToken');
 
 const sanitize = require('mongo-sanitize');
-const Usuario = require('../Models/Usuario') 
+const Usuario = require('../models/Usuario') 
 
 
 router.post("/init", async (req, res) =>{
