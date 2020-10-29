@@ -1,26 +1,62 @@
 const jwt=require("jsonwebtoken")
 require("dotenv/config")
+const Usuario = require('../Models/Usuario') 
 
 const jwt_auth = async (req, res, next) => {
   
  
 
   const token =req.cookies['token'] || '' ;
-  const token2= req.headers['access-token'] || ''
-  try {
-    if ((process.env.COOKIE_AUTH=="TRUE" && !token) || !token2) {
-      return res.status(401).json('Por favor inicie sesión')
-    }
-    const decrypt = process.env.COOKIE_AUTH=="TRUE" ? await jwt.verify(token, process.env.JWT_KEY) : null;
-    const decrypt2 = await jwt.verify(token2, process.env.JWT_KEY_HEADER);
-    req.user = {
-      id: process.env.COOKIE_AUTH=="TRUE" ? decrypt.id : 0,
-      username: decrypt2.username,
-    };
+  const csrfToken= req.headers.csrftoken || ''
+
+   try{
+     const decrypt=await jwt.verify(token, process.env.JWT_KEY)
+     if (csrfToken!=decrypt.csrfToken) throw "tokens no son iguales"
+     
+     if (decrypt.ip!=req.ip) throw "IPS no coinciden"
     next();
-  } catch (err) {
-    return res.status(500).json({error: "error de autorización"});
+  }catch (err){
+    if (err.name=="TokenExpiredError"){
+      const result=await regenerateToken(res, token, csrfToken)
+      if (result){
+        next()
+      }else{
+        res.status(501).json({error: "Error de inicio de tokens"})
+      }
+    }else{
+      res.status(500).json({error: "Error de autenticación"})
+    }
   }
+   
 };
+
+const regenerateToken = async (res,oldToken, csrfToken) =>{
+  try{
+    const payload = await jwt.verify(oldToken, process.env.JWT_KEY, {ignoreExpiration: true} );
+
+    const username=payload.username
+    const ip=payload.ip
+    const user=await Usuario.findOne({username: username})
+
+    const refresh=user.refresh
+    const decrypt=await jwt.verify(refresh, process.env.REFRESH_KEY);
+    if (decrypt.csrfToken!=csrfToken) throw "tokens no coinciden"
+    if (decrypt.ip!=ip) throw "IPS no coinciden"
+
+    const token = jwt.sign({ username,ip, csrfToken}, process.env.JWT_KEY, {
+      expiresIn: process.env.TOKEN_EXPIRATION,
+    });
+
+    res.cookie('token', token, {
+      secure: process.env.PROFILE=="PRODUCTION",
+    httpOnly: process.env.PROFILE=="PRODUCTION",
+    sameSite: process.env.PROFILE=="PRODUCTION" ? "none" : "strict"
+    });
+    return true
+  }catch (err){
+    console.log(err)
+    return false
+  }
+}
 
 module.exports = jwt_auth;

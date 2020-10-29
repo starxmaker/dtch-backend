@@ -2,6 +2,7 @@
 const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
+const sanitize = require('mongo-sanitize');
 
 router.use(authenticateJWT)
 
@@ -13,8 +14,12 @@ router.get("/today", async (req, res) =>{
     res.status(200).json(stats)
 })
 router.get("/:year/:month/:day", async (req, res) =>{
+    //params
+    const year=sanitize(req.params.year)
+    const month=sanitize(req.params.month)
+    const day=sanitize(req.params.day)
     
-    const stats=await getStats(req.params.year, req.params.month, req.params.day)
+    const stats=await getStats(year, month, day)
     res.status(200).json(stats)
 })
 

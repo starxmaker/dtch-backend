@@ -1,6 +1,7 @@
 const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
+const sanitize = require('mongo-sanitize');
 
 
 router.use(authenticateJWT)
@@ -28,16 +29,20 @@ router.get("/getLast", async (req, res) =>{
     }
 })
 router.get("/telefono/:telefonoId", async (req, res) =>{
+    //params
+    const idTelefono=sanitize(req.params.telefonoId)
     try{
-        const results=await queryHistorials(100, {id_numero: parseInt(req.params.telefonoId)})
+        const results=await queryHistorials(100, {id_numero: parseInt(idTelefono)})
         res.status(200).json(results)
     }catch(err){
         res.status(403).send()
     }
 })
 router.get("/:historialId", async (req, res) =>{
+    //params
+    const idHistorial=sanitize(req.params.historialId)
     try{
-        const results=await queryHistorials(1, {idHistorial: parseInt(req.params.historialId)})
+        const results=await queryHistorials(1, {idHistorial: parseInt(idHistorial)})
         res.status(200).json(results)
     }catch(err){
         res.status(403).send()
@@ -45,12 +50,19 @@ router.get("/:historialId", async (req, res) =>{
 })
 
 router.post("/", async (req,res) =>{
+    //nbody
+        const tiempo= sanitize(req.body.tiempo)
+        const estado= sanitize(req.body.estado)
+        const id_numero= sanitize(req.body.idTelefono)
+        const tipo= sanitize(req.body.tipo)
+        const publicador= sanitize(req.body.publicador)
+
     const historial= new Historial({
-        tiempo: req.body.tiempo,
-        estado: req.body.estado,
-        id_numero: req.body.idTelefono,
-        tipo: req.body.tipo,
-        publicador: req.body.publicador
+        tiempo: tiempo,
+        estado: estado,
+        id_numero: id_numero,
+        tipo: tipo,
+        publicador: publicador
     })
     try{
         const savedHistorial = await historial.save()
@@ -62,8 +74,10 @@ router.post("/", async (req,res) =>{
 
 
 router.delete("/:historialId", async (req, res) =>{
+    //params
+    const idHistorial=sanitize(req.params.historialId)
     try{
-        await Historial.remove({ 'idHistorial': req.params.historialId })
+        await Historial.remove({ 'idHistorial': parseInt(idHistorial) })
         res.status(200).json({message: "registro eliminado"})
     }catch(err){
         res.status(403).send("Error de autorización")

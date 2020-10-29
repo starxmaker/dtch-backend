@@ -4,37 +4,43 @@ const jwt=require("jsonwebtoken")
 require("dotenv/config")
 const generateToken = require('../utils/generateToken');
 
-const Usuario = require("../models/Usuario")
+const sanitize = require('mongo-sanitize');
+const Usuario = require('../Models/Usuario') 
 
 
 router.post("/init", async (req, res) =>{
-    const countUsuarios= await Usuario.countDocuments()
-        if (countUsuarios===0){
+    const username=sanitize(req.body.username)
+    const password=sanitize(req.body.password)
+    try{
+        if (process.env.ALLOW_USER_CREATION!="TRUE") throw "Se deshabilitó la creación de usuarios"
+
            const newUser = new Usuario({
-                username: req.body.username,
-                password: req.body.password
+                username: username,
+                password: password
             })
-            try{
+            
                 await newUser.save()
-                res.json({message: "usuario creado"})
-            }catch(err){
+                res.status(200).json({message:"OK"})
+    }catch(err){
                 res.status(403).json({error: "Error de autorizacion"});
-            }
+     }
         
-    }else{
-        res.status(403).json({error: "Ya se inicializó el primer usuario"})
-    }
-})
+}) 
+
 
 router.post("/login", (req,res) =>{
+    //sanitize
+    const ip= sanitize(req.ip)
+    const username=sanitize(req.body.username)
+    const password=sanitize(req.body.password)
     try{
-        Usuario.getAuthenticated(req.body.username, req.body.password, function(err, user, reason) {
+        Usuario.getAuthenticated(username, password, async function(err, user, reason) {
         if (user) {
-                const token=generateToken(res,user._id, user.username)
+                const csrfToken=await generateToken(res, username, ip)
                
                res.json({
                 mensaje: 'Autenticación correcta',
-                token: token
+                csrfToken: csrfToken
                });
             return;
         }else{

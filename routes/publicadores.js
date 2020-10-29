@@ -1,6 +1,7 @@
 const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
+const sanitize = require('mongo-sanitize');
 
 router.use(authenticateJWT)
 
@@ -18,8 +19,11 @@ router.get("/getAll", async (req, res) =>{
 })
 
 router.get("/nombre/:nombre", async (req, res) =>{
+
+    //params
+    const nombre=sanitize(req.params.nombre)
     try{
-        const receivedPublicador= await Publicador.findOne({ 'nombre': req.params.nombre })
+        const receivedPublicador= await Publicador.findOne({ 'nombre': nombre})
         res.status(200).json(receivedPublicador)
     }catch(err){
         res.status(403).send()
@@ -27,8 +31,10 @@ router.get("/nombre/:nombre", async (req, res) =>{
 })
 
 router.get("/:publicadorId", async (req, res) =>{
+    //params
+    const idPublicador=sanitize(req.params.publicadorId)
     try{
-        const receivedPublicador= await Publicador.findOne({ 'idPublicador': parseInt(req.params.publicadorId) })
+        const receivedPublicador= await Publicador.findOne({ 'idPublicador': parseInt(idPublicador)})
         res.status(200).json(receivedPublicador)
     }catch(err){
         res.status(403).send({error: "Error de autorización"})
@@ -38,10 +44,15 @@ router.get("/:publicadorId", async (req, res) =>{
 
 
 router.post("/", async (req,res) =>{
+
+    const nombre= sanitize(req.body.nombre,)
+    const invitado= sanitize(req.body.invitado,)
+    const grupo= sanitize(req.body.grupo)
+
     const publicador= new Publicador({
-        nombre: req.body.nombre,
-        invitado: req.body.invitado,
-        grupo: req.body.grupo
+        nombre: nombre,
+        invitado: invitado,
+        grupo: grupo
     })
     try{
         const savedPublicador = await publicador.save()
@@ -52,8 +63,10 @@ router.post("/", async (req,res) =>{
 })
 
 router.delete("/:publicadorId", async (req, res) =>{
+    //params
+    const idPublicador=sanitize(req.params.publicadorId)
     try{
-        await Publicador.remove({ 'idPublicador': req.params.publicadorId })
+        await Publicador.remove({ 'idPublicador': idPublicador })
         res.status(200).json({message: "publicador eliminado"})
     }catch(err){
         res.status(403).send("Error de autorización")

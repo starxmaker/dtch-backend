@@ -10,7 +10,7 @@ const UsuarioSchema=mongoose.Schema({
     password: { type: String, required: true },
     loginAttempts: { type: Number, required: true, default: 0 },
     lockUntil: { type: Number },
-    signKey: {type: String}
+    refresh: {type: String, default:null}
     
 })
 

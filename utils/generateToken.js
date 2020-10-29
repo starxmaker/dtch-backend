@@ -1,20 +1,27 @@
 const jwt = require('jsonwebtoken');
-require("dotenv/config")
+require("dotenv/config") 
+const Usuario = require('../Models/Usuario') 
+const { v4: uuidv4 } = require('uuid');
 
-const generateToken = (res, id, username) => {
-  const expiration = process.env.EXPIRATION;
-  const token = jwt.sign({ id}, process.env.JWT_KEY, {
+const generateToken = async (res, username, ip) => {
+  const expiration = process.env.TOKEN_EXPIRATION;
+  const refreshExpiration=process.env.REFRESH_EXPIRATION
+  const csrfToken=uuidv4();
+
+  
+  const token = jwt.sign({ username, ip, csrfToken}, process.env.JWT_KEY, {
     expiresIn: expiration,
   });
-  const token_header = jwt.sign({username }, process.env.JWT_KEY_HEADER, {
-    expiresIn: expiration,
+  const refreshToken = jwt.sign({ username, ip, csrfToken}, process.env.REFRESH_KEY, {
+    expiresIn: refreshExpiration,
   });
+  
   res.cookie('token', token, {
-    secure: process.env.HTTPS=="TRUE",
-    //domain: process.env.DOMAIN,
-    httpOnly: true,
-    sameSite: "none"
+    secure: process.env.PROFILE=="PRODUCTION",
+    httpOnly: process.env.PROFILE=="PRODUCTION",
+    sameSite: process.env.PROFILE=="PRODUCTION" ? "none" : "strict"
   });
-  return token_header
+  await Usuario.updateOne({username: username}, {$set: {refresh: refreshToken}})
+  return csrfToken
 };
 module.exports = generateToken

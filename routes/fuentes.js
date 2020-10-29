@@ -1,6 +1,7 @@
 const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
+const sanitize = require('mongo-sanitize');
 
 router.use(authenticateJWT)
 
@@ -20,8 +21,11 @@ router.get("/blank", (req,res) =>{
     res.status(200).json({idFuente: -1, nombre: "Fuente Propia", color:"grey", descripcion: "una"})
 })
 router.get("/:fuenteId", async (req, res) =>{
+    //params
+
+    const idFuente= sanitize(req.params.fuenteId)
     try{
-        const receivedFuente= await Fuente.findOne({ 'idFuente': req.params.fuenteId })
+        const receivedFuente= await Fuente.findOne({ 'idFuente': idFuente })
         res.status(200).json(receivedFuente)
     }catch(err){
         res.status(403).send({error: "Error de autorización"})
@@ -29,10 +33,14 @@ router.get("/:fuenteId", async (req, res) =>{
 })
 
 router.post("/", async (req,res) =>{
+    //body
+    const nombre=sanitize(req.body.nombre)
+    const color=sanitize(req.body.color)
+    const descripcion=sanitize(req.body.descripcion)
     const fuente= new Fuente({
-        nombre: req.body.nombre,
-        color: req.body.color,
-        descripcion: req.body.descripcion
+        nombre: nombre,
+        color: color,
+        descripcion: descripcion
     })
     try{
         const savedFuente = await fuente.save()
@@ -43,8 +51,10 @@ router.post("/", async (req,res) =>{
 })
 
 router.delete("/:fuenteId", async (req, res) =>{
+    //params
+    const idFuente=sanitize(req.params.fuenteId)
     try{
-        await Fuente.remove({ 'idFuente': req.params.fuenteId })
+        await Fuente.remove({ 'idFuente': idFuente })
         res.status(200).json({message: "fuente eliminada"})
     }catch(err){
         res.status(403).send("Error de autorización")

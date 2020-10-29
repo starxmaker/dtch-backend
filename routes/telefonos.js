@@ -1,6 +1,7 @@
 const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
+const sanitize = require('mongo-sanitize');
 
 
 router.use(authenticateJWT)
@@ -52,8 +53,9 @@ router.get("/blank", async (req, res) =>{
         })
 })
 router.get("/replacePublicador/:publicadorId", async (req, res) =>{
+    const idPublicador=sanitize(req.params.publicadorId)
     try{
-        let publicadorId=parseInt(req.params.publicadorId)
+        let publicadorId=parseInt(idPublicador)
         await Telefono.updateMany({ "estado": {"$in": [7,2,8,10,11] }, publicador: publicadorId},{$set:{estado:4}})
        await Telefono.updateMany({publicador: publicadorId},{$set:{publicador:0}})
         res.status(200).json({message: "OK"})
@@ -62,8 +64,9 @@ router.get("/replacePublicador/:publicadorId", async (req, res) =>{
     }
 })
 router.get("/checkExistance/:numero", async(req,res) =>{
+    const numero=sanitize(req.params.numero)
     try{
-        const telefonos= await Telefono.countDocuments({numero:req.params.numero})
+        const telefonos= await Telefono.countDocuments({numero:numero})
        
         res.status(200).json({exists: telefonos!==0})
     }catch(err){
@@ -71,16 +74,17 @@ router.get("/checkExistance/:numero", async(req,res) =>{
     }
 })
 router.get("/query/:search", async (req, res) =>{
+    const search=sanitize(req.params.search)
     try{
         let filtros
-        if (isNaN(req.params.search)){
+        if (isNaN(search)){
             filtros={
-                nombrePublicador: new RegExp(req.params.search, "i"),
+                nombrePublicador: new RegExp(search, "i"),
                 estado: {$in:[7,2,10,11]}
             }
         }else{
             filtros={
-                numero: new RegExp(req.params.search, "i")
+                numero: new RegExp(search, "i")
             }
         }
         const results=await queryTelefonos(filtros,100)
@@ -90,9 +94,10 @@ router.get("/query/:search", async (req, res) =>{
     }
 })
 router.get("/revisitasByPublicador/:publicadorId", async (req, res) =>{
+    const idPublicador=sanitize(req.params.publicadorId)
     try{
         let filtros={
-            publicador: parseInt(req.params.publicadorId)
+            publicador: parseInt(idPublicador)
         }
         const results=await queryTelefonos(filtros,100)
         res.status(200).json(results)
@@ -102,8 +107,9 @@ router.get("/revisitasByPublicador/:publicadorId", async (req, res) =>{
 })
 
 router.get("/release/:telefonoId", async (req, res) =>{
+     const idTelefono=sanitize(req.params.telefonoId)
     try{
-        await Telefono.updateOne({idTelefono: req.params.telefonoId},{estado:4, publicador:0})
+        await Telefono.updateOne({idTelefono: idTelefono},{estado:4, publicador:0})
         res.status(200).json({"message": "OK"})
     }catch(err){
         res.status(403).send()
@@ -111,9 +117,10 @@ router.get("/release/:telefonoId", async (req, res) =>{
 })
 
 router.get("/:telefonoId", async (req, res) =>{
+    const idTelefono=sanitize(req.params.telefonoId)
     try{
         const filtros={
-            idTelefono: parseInt(req.params.telefonoId)
+            idTelefono: parseInt(idTelefono)
         }
         const results=await queryTelefonos(filtros,1)
         res.status(200).json(results)
@@ -139,6 +146,7 @@ router.post("/nextNumber", async (req, res) =>{
         if (req.body.filtro.respuesta.receptivo) allowedEstados.push(6)
         if (req.body.filtro.respuesta.sinInteres) allowedEstados.push(1)
         if (req.body.filtro.respuesta.noUtilizado) allowedEstados.push(0)
+        if (req.body.filtro.respuesta.buzon) allowedEstados.push(12)
         if (req.body.filtro.respuesta.revisita){
             allowedEstados.push(7,2,10,11)
             additionalFilters={...additionalFilters, publicador: req.body.filtro.respuesta.revisitaPublisher.value}
@@ -156,7 +164,7 @@ router.post("/nextNumber", async (req, res) =>{
             //grupo: {$in: allowedGrupos},
             //fuente: {$in: allowedFuentes}
         }
-        const results=await queryTelefonos(filtros,req.body.quantity)
+        const results=await queryTelefonos(filtros,sanitize(req.body.quantity))
         
         res.status(200).json(results)
     }catch (err){
@@ -167,15 +175,24 @@ router.post("/nextNumber", async (req, res) =>{
 })
 
 router.post("/", async (req,res) =>{
+        const direccion= sanitize(req.body.direccion)
+        const codigo_pais= sanitize(req.body.codigo_pais)
+        const codigo_region= sanitize(req.body.codigo_region)
+        const numero= sanitize(req.body.numero)
+        const grupo= sanitize(req.body.grupo)
+        const fuente= sanitize(req.body.fuente)
+        const tipo= sanitize(req.body.tipo)
+        const publicador= sanitize(req.body.publicador)
+
     const telefono= new Telefono({
-        direccion: req.body.direccion,
-        codigo_pais: req.body.codigo_pais,
-        codigo_region: req.body.codigo_region,
-        numero: req.body.numero,
-        grupo: req.body.grupo,
-        fuente: req.body.fuente,
-        tipo: req.body.tipo,
-        publicador: req.body.publicador
+        direccion: direccion,
+        codigo_pais: codigo_pais,
+        codigo_region: codigo_region,
+        numero: numero,
+        grupo: grupo,
+        fuente: fuente,
+        tipo: tipo,
+        publicador: publicador
     })
     try{
         const savedTelefono = await telefono.save()
@@ -186,9 +203,13 @@ router.post("/", async (req,res) =>{
 })
 
 router.patch("/", async(req,res) =>{
+    const idTelefono=sanitize(req.body.idTelefono)
+    const newEstado=sanitize(req.body.newEstado)
+    const newPublicador=sanitize(req.body.newPublicador)
+    const tiempo=sanitize(req.body.tiempo)
     try{
-        if (req.body.idTelefono!=0 && req.body.idTelefono!=null){
-            let telefono=await Telefono.findOne({idTelefono: req.body.idTelefono})
+        if (idTelefono!=0 && idTelefono!=null){
+            let telefono=await Telefono.findOne({idTelefono: idTelefono})
             let notEditables=[7,2,10,11]
             let newStatusNotEditables=[0,9,4,6,12]
             let updateQuery={
@@ -200,22 +221,22 @@ router.patch("/", async(req,res) =>{
                 ultima_llamada_second:new Date().getSeconds()
             }
             
-            if(!(notEditables.includes(telefono.estado) && newStatusNotEditables.includes(req.body.newEstado))){
+            if(!(notEditables.includes(telefono.estado) && newStatusNotEditables.includes(newEstado))){
                     updateQuery={
                         ...updateQuery,
-                        estado: req.body.newEstado,
-                        publicador: req.body.newPublicador
+                        estado: newEstado,
+                        publicador: newPublicador
                     }
                 
             }
-            await Telefono.updateOne({idTelefono: req.body.idTelefono},updateQuery)
+            await Telefono.updateOne({idTelefono: idTelefono},updateQuery)
         }
         
         const newRecord=new Historial({
-            id_numero: req.body.idTelefono,
-            estado:req.body.newEstado,
-            publicador: req.body.newPublicador,
-            tiempo: req.body.tiempo
+            id_numero: idTelefono,
+            estado:newEstado,
+            publicador: newPublicador,
+            tiempo: tiempo
         })
         const insertedRecord=await newRecord.save()
         res.status(200).json({"message": "OK"})
@@ -226,8 +247,9 @@ router.patch("/", async(req,res) =>{
 })
 
 router.delete("/:telefonoId", async (req, res) =>{
+    const idTelefono=sanitize(req.params.telefonoId)
     try{
-        await Telefono.remove({ 'idTelefono': req.params.telefonoId })
+        await Telefono.remove({ 'idTelefono': idTelefono })
         res.status(200).json({message: "telefono eliminado"})
     }catch(err){
         res.status(403).send("Error de autorización")

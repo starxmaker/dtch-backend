@@ -12,7 +12,7 @@ const app=express()
 //middlewares
 app.use(helmet())
 app.use(cors({
-  origin: [process.env.FRONT_URL_PRODUCTION, process.env.FRONT_URL_DEVELOPMENT],
+  origin: process.env.FRONT_URL,
     credentials: true
   }))
 
