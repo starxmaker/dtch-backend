@@ -161,7 +161,7 @@ router.post("/nextNumber", async (req, res) =>{
         let month = current.getMonth() +1
         let year = current.getFullYear()
 
-        let filteredMonth = month === 12? 1 : month
+        let filteredMonth = month === 1? 12 : month -1
         let filteredYear = month === 12? year -1 : year;
 
         let filtros={
