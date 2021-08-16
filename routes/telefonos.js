@@ -162,14 +162,16 @@ router.post("/nextNumber", async (req, res) =>{
         let year = current.getFullYear()
 
         let filteredMonth = month === 1? 12 : month -1
-        let filteredYear = month === 12? year -1 : year;
+        let filteredYear = month === 1? year -1 : year;
 
         let filtros={
             ...additionalFilters,
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
-            ultima_llamada_year: {$lte: filteredYear},
-            ultima_llamada_month: {$lte: filteredMonth}
+            $or: [
+            {ultima_llamada_year: {$lt: filteredYear}},
+            {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lte: filteredMonth}}
+            ]
             //grupo: {$in: allowedGrupos},
             //fuente: {$in: allowedFuentes}
         }
