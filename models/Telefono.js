@@ -86,6 +86,9 @@ const TelefonoSchema=mongoose.Schema({
     ultima_visualizacion_second:{
         type:Number,
         default: new Date().getSeconds()
+    },
+    reservedUser : {
+        type: String
     }
     
 })

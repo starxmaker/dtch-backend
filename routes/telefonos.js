@@ -131,6 +131,10 @@ router.get("/:telefonoId", async (req, res) =>{
 
 router.post("/nextNumber", async (req, res) =>{
    try{
+
+        const token =req.cookies['token'] || '' ;
+        const payload = await jwt.verify(token, process.env.JWT_KEY, {ignoreExpiration: true} );
+
         let allowedEstados=[]
         
         let allowedTipos=[]
@@ -169,8 +173,12 @@ router.post("/nextNumber", async (req, res) =>{
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
             $or: [
-            {ultima_llamada_year: {$lt: filteredYear}},
-            {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lte: filteredMonth}}
+                {ultima_llamada_year: {$lt: filteredYear}},
+                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lte: filteredMonth}}
+            ],
+            $or: [
+                {reservedUser: { $exists: false } },
+                {reservedUser: {$eq: payload.username}}
             ]
             //grupo: {$in: allowedGrupos},
             //fuente: {$in: allowedFuentes}
