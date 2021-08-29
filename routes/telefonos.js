@@ -187,6 +187,7 @@ router.post("/nextNumber", async (req, res) =>{
         
         res.status(200).json(results)
     }catch (err){
+        console.log(err)
         res.status(403).send({error: "Error de autorización"})
     }
     
