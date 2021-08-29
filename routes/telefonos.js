@@ -2,7 +2,7 @@ const express= require("express")
 const router= express.Router()
 const authenticateJWT = require("../middlewares/jwt_auth")
 const sanitize = require('mongo-sanitize');
-
+const jwt=require("jsonwebtoken")
 
 router.use(authenticateJWT)
 
