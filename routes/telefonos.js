@@ -203,6 +203,12 @@ router.post("/", async (req,res) =>{
         const fuente= sanitize(req.body.fuente)
         const tipo= sanitize(req.body.tipo)
         const publicador= sanitize(req.body.publicador)
+        let reservedUser = undefined
+        if(req.body.reserve){
+            const token =req.cookies['token'] || '' ;
+            const payload = await jwt.verify(token, process.env.JWT_KEY, {ignoreExpiration: true} );
+            reservedUser = payload.username
+        }
 
     const telefono= new Telefono({
         direccion: direccion,
@@ -212,7 +218,8 @@ router.post("/", async (req,res) =>{
         grupo: grupo,
         fuente: fuente,
         tipo: tipo,
-        publicador: publicador
+        publicador: publicador,
+        reservedUser: reservedUser
     })
     try{
         const savedTelefono = await telefono.save()
