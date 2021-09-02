@@ -164,6 +164,7 @@ router.post("/nextNumber", async (req, res) =>{
         let current = new Date()
         let month = current.getMonth() +1
         let year = current.getFullYear()
+        let day = current.getDate()
 
         let filteredMonth = month === 1? 12 : month -1
         let filteredYear = month === 1? year -1 : year;
@@ -174,7 +175,8 @@ router.post("/nextNumber", async (req, res) =>{
             tipo: {$in: allowedTipos },
             $or: [
                 {ultima_llamada_year: {$lt: filteredYear}},
-                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lte: filteredMonth}}
+                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lt: filteredMonth}},
+                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$eq: filteredMonth}, ultima_llamada_day: {$lt: day}},
             ],
             $or: [
                 {reservedUser: { $exists: false } },
@@ -187,7 +189,6 @@ router.post("/nextNumber", async (req, res) =>{
         
         res.status(200).json(results)
     }catch (err){
-        console.log(err)
         res.status(403).send({error: "Error de autorización"})
     }
     
