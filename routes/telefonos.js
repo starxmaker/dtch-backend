@@ -156,7 +156,7 @@ router.post("/nextNumber", async (req, res) =>{
             additionalFilters={...additionalFilters, publicador: req.body.filtro.respuesta.revisitaPublisher.value}
             
         }
-        if (req.body.filtro.visualizadoHoy) additionalFilters={...additionalFilters, ultima_visualizacion_year:new Date().getFullYear(), ultima_visualizacion_month:new Date().getMonth()+1, ultima_visualizacion_day: new Date().getDate()}
+        //if (req.body.filtro.visualizadoHoy) additionalFilters={...additionalFilters, ultima_visualizacion_year:new Date().getFullYear(), ultima_visualizacion_month:new Date().getMonth()+1, ultima_visualizacion_day: new Date().getDate()}
         /* if (req.body.filtro.llamadoSemana){
             additionalFilters={...additionalFilters, dias_desde: {$lte : 7} }
         
