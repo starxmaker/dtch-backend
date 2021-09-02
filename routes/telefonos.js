@@ -157,10 +157,10 @@ router.post("/nextNumber", async (req, res) =>{
             
         }
         if (req.body.filtro.visualizadoHoy) additionalFilters={...additionalFilters, ultima_visualizacion_year:new Date().getFullYear(), ultima_visualizacion_month:new Date().getMonth()+1, ultima_visualizacion_day: new Date().getDate()}
-        if (req.body.filtro.llamadoSemana){
+        /* if (req.body.filtro.llamadoSemana){
             additionalFilters={...additionalFilters, dias_desde: {$lte : 7} }
         
-        }
+        } */
         let current = new Date()
         let month = current.getMonth() +1
         let year = current.getFullYear()
