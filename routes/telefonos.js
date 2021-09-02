@@ -173,8 +173,18 @@ router.post("/nextNumber", async (req, res) =>{
             ...additionalFilters,
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
-            ultima_llamada_year: {$eq: filteredYear}, 
-            ultima_llamada_month: {$lt: filteredMonth -1},
+            $or : [
+                {ultima_llamada_year: {$lt: filteredYear}},
+                {$and: [
+                    {ultima_llamada_year: {$eq: filteredYear}},
+                    {ultima_llamada_month: {$lt: filteredMonth}},
+                ]},
+                {$and: [
+                    {ultima_llamada_year: {$eq: filteredYear}},
+                    {ultima_llamada_month: {$eq: filteredMonth}},
+                    {ultima_llamada_day: {$lt: day}},
+                ]}
+            ],
             $or: [
                 {reservedUser: { $exists: false } },
                 {reservedUser: {$eq: payload.username}}
