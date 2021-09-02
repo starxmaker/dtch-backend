@@ -168,23 +168,15 @@ router.post("/nextNumber", async (req, res) =>{
 
         let filteredMonth = month === 1? 12 : month -1
         let filteredYear = month === 1? year -1 : year;
+        let filteredDay = 
 
         let filtros={
             ...additionalFilters,
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
-            $or : [
-                {ultima_llamada_year: {$lt: filteredYear}},
-                {$and: [
-                    {ultima_llamada_year: {$eq: filteredYear}},
-                    {ultima_llamada_month: {$lt: filteredMonth}},
-                ]},
-                {$and: [
-                    {ultima_llamada_year: {$eq: filteredYear}},
-                    {ultima_llamada_month: {$eq: filteredMonth}},
-                    {ultima_llamada_day: {$lt: day}},
-                ]}
-            ],
+            ultima_llamada_year: {$eq: filteredYear}, 
+            ultima_llamada_month: {$eq: filteredMonth -1},
+            ultima_llamada_day: {$eq: filteredDay},
             $or: [
                 {reservedUser: { $exists: false } },
                 {reservedUser: {$eq: payload.username}}
