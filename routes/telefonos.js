@@ -175,8 +175,7 @@ router.post("/nextNumber", async (req, res) =>{
             tipo: {$in: allowedTipos },
             $or: [
                 {ultima_llamada_year: {$lt: filteredYear}},
-                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lt: filteredMonth}},
-                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$eq: filteredMonth}, ultima_llamada_day: {$lt: day}},
+                {ultima_llamada_year: {$eq: filteredYear}, ultima_llamada_month: {$lt: filteredMonth -1}},
             ],
             $or: [
                 {reservedUser: { $exists: false } },
