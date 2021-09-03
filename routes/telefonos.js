@@ -168,15 +168,11 @@ router.post("/nextNumber", async (req, res) =>{
 
         let filteredMonth = month === 1? 12 : month -1
         let filteredYear = month === 1? year -1 : year;
-        let filteredDay = 
 
         let filtros={
             ...additionalFilters,
             estado: { $in: allowedEstados},
             tipo: {$in: allowedTipos },
-            ultima_llamada_year: {$eq: filteredYear}, 
-            ultima_llamada_month: {$eq: filteredMonth -1},
-            ultima_llamada_day: {$eq: filteredDay},
             $or: [
                 {reservedUser: { $exists: false } },
                 {reservedUser: {$eq: payload.username}}
@@ -185,8 +181,14 @@ router.post("/nextNumber", async (req, res) =>{
             //fuente: {$in: allowedFuentes}
         }
         const results=await queryTelefonos(filtros,sanitize(req.body.quantity))
-        
-        res.status(200).json(results)
+        const filteredResults = results.filter(r => {
+            let year = r.ultima_llamada_year
+            let month = r.ultima_llamada_month
+            let day = r.ultima_llamada_day
+            let date = new Date(`${year}-${month<10? "0"+month : month}-${day<10? "0"+day : day}`)
+            return new Date().getTime() - date.getTime() > 1000 * 60 * 60 * 24 * 30
+        })
+        res.status(200).json(filteredResults)
     }catch (err){
         res.status(403).send({error: "Error de autorización"})
     }
